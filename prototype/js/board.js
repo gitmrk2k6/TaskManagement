@@ -68,6 +68,17 @@ function renderList(list) {
 
   el.appendChild(header);
 
+  const sortBar = document.createElement('div');
+  sortBar.className = 'list-sort-bar';
+  ['priority', 'due'].forEach((by) => {
+    const btn = document.createElement('button');
+    btn.className = 'sort-btn';
+    btn.textContent = by === 'priority' ? '優先度順' : '期限順';
+    btn.addEventListener('click', () => sortList(list.id, by));
+    sortBar.appendChild(btn);
+  });
+  el.appendChild(sortBar);
+
   const cards = document.createElement('div');
   cards.className = 'cards';
   cards.dataset.listId = list.id;
@@ -104,6 +115,11 @@ function renderCard(card, listId) {
       })
       .join('');
     parts.push(`<div class="card-labels">${labelsHtml}</div>`);
+  }
+
+  if (card.priority) {
+    const po = PRIORITY_OPTIONS.find((p) => p.key === card.priority);
+    if (po) parts.push(`<span class="card-priority" style="background:${po.color}">${po.label}</span>`);
   }
 
   parts.push(`<div class="card-title">${escapeHtml(card.title)}</div>`);
@@ -185,7 +201,29 @@ function addNewCard(listId) {
     description: '',
     labels: [],
     dueDate: null,
+    priority: null,
   });
+  saveBoard(board);
+  render();
+}
+
+// ==== Sort ====
+function sortList(listId, by) {
+  const board = loadBoard();
+  const list = board.lists.find((l) => l.id === listId);
+  if (!list) return;
+
+  if (by === 'priority') {
+    list.cards.sort((a, b) => (PRIORITY_RANK[b.priority] || 0) - (PRIORITY_RANK[a.priority] || 0));
+  } else if (by === 'due') {
+    list.cards.sort((a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0;
+      if (!a.dueDate) return 1;
+      if (!b.dueDate) return -1;
+      return a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : 0;
+    });
+  }
+
   saveBoard(board);
   render();
 }
@@ -197,11 +235,37 @@ function openCardModal(listId, cardId) {
   const card = list ? list.cards.find((c) => c.id === cardId) : null;
   if (!card) return;
 
-  openCardCtx = { listId, cardId, selectedLabels: [...(card.labels || [])] };
+  openCardCtx = { listId, cardId, selectedLabels: [...(card.labels || [])], selectedPriority: card.priority || null };
 
   document.getElementById('cardTitleInput').value = card.title;
   document.getElementById('cardDescInput').value = card.description || '';
   document.getElementById('cardDueInput').value = card.dueDate || '';
+
+  const priorityPicker = document.getElementById('priorityPicker');
+  priorityPicker.innerHTML = '';
+  const noneChip = document.createElement('div');
+  noneChip.className = 'priority-chip' + (!openCardCtx.selectedPriority ? ' selected' : '');
+  noneChip.style.background = '#ebecf0';
+  noneChip.style.color = '#172b4d';
+  noneChip.textContent = 'なし';
+  noneChip.addEventListener('click', () => {
+    openCardCtx.selectedPriority = null;
+    priorityPicker.querySelectorAll('.priority-chip').forEach((c) => c.classList.remove('selected'));
+    noneChip.classList.add('selected');
+  });
+  priorityPicker.appendChild(noneChip);
+  PRIORITY_OPTIONS.forEach((po) => {
+    const chip = document.createElement('div');
+    chip.className = 'priority-chip' + (openCardCtx.selectedPriority === po.key ? ' selected' : '');
+    chip.style.background = po.color;
+    chip.textContent = po.label;
+    chip.addEventListener('click', () => {
+      openCardCtx.selectedPriority = po.key;
+      priorityPicker.querySelectorAll('.priority-chip').forEach((c) => c.classList.remove('selected'));
+      chip.classList.add('selected');
+    });
+    priorityPicker.appendChild(chip);
+  });
 
   const picker = document.getElementById('labelPicker');
   picker.innerHTML = '';
@@ -249,6 +313,7 @@ function saveCardModal() {
   card.description = document.getElementById('cardDescInput').value;
   card.dueDate = document.getElementById('cardDueInput').value || null;
   card.labels = [...openCardCtx.selectedLabels];
+  card.priority = openCardCtx.selectedPriority || null;
 
   saveBoard(board);
   closeCardModal();

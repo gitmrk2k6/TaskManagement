@@ -55,6 +55,7 @@ erDiagram
     USERS ||--o{ BOARDS : "owns"
     BOARDS ||--o{ BOARD_LISTS : "contains"
     BOARD_LISTS ||--o{ CARDS : "contains"
+    CARDS ||--o{ CARD_LABELS : "has"
 
     USERS {
         bigint id PK
@@ -68,6 +69,7 @@ erDiagram
         bigint id PK
         bigint user_id FK
         varchar name
+        varchar color
         timestamp created_at
         timestamp updated_at
     }
@@ -84,9 +86,15 @@ erDiagram
         bigint board_list_id FK
         varchar title
         text description
+        varchar priority
+        date due_date
         int position
         timestamp created_at
         timestamp updated_at
+    }
+    CARD_LABELS {
+        bigint card_id FK
+        varchar label_key
     }
 ```
 
@@ -120,6 +128,7 @@ erDiagram
 | id | BIGINT | NO | PK | AUTO_INCREMENT | ボードID |
 | user_id | BIGINT | NO | FK | - | 所有ユーザーID → users.id |
 | name | VARCHAR(50) | NO | - | - | ボード名 |
+| color | VARCHAR(7) | NO | - | '#0079bf' | ボード背景色（16進数カラーコード） |
 | created_at | TIMESTAMP | NO | - | CURRENT_TIMESTAMP | 作成日時 |
 | updated_at | TIMESTAMP | NO | - | CURRENT_TIMESTAMP | 更新日時 |
 
@@ -141,10 +150,23 @@ erDiagram
 | id | BIGINT | NO | PK | AUTO_INCREMENT | カードID |
 | board_list_id | BIGINT | NO | FK | - | 所属リストID → board_lists.id |
 | title | VARCHAR(255) | NO | - | - | カードタイトル |
-| description | TEXT | YES | - | NULL | 説明（任意機能） |
+| description | TEXT | YES | - | NULL | 説明文 |
+| priority | VARCHAR(10) | YES | - | NULL | 優先度（'high' / 'medium' / 'low'） |
+| due_date | DATE | YES | - | NULL | 期限日 |
 | position | INT | NO | - | 0 | リスト内での表示順 |
 | created_at | TIMESTAMP | NO | - | CURRENT_TIMESTAMP | 作成日時 |
 | updated_at | TIMESTAMP | NO | - | CURRENT_TIMESTAMP | 更新日時 |
+
+### 3.5 card_labels（カードラベル）
+
+カードに付与されるラベルを管理する中間テーブル。ラベルの種類はアプリケーション側で固定（green / yellow / orange / red / purple / blue の6種）。
+
+| カラム | 型 | NULL | キー | デフォルト | 説明 |
+| --- | --- | --- | --- | --- | --- |
+| card_id | BIGINT | NO | FK | - | カードID → cards.id |
+| label_key | VARCHAR(20) | NO | - | - | ラベルキー（例: 'red', 'blue'） |
+
+- 主キー: (card_id, label_key) の複合PK
 
 ---
 
@@ -160,6 +182,8 @@ erDiagram
 | board_lists | idx_board_lists_board_pos | (board_id, position) | 複合 | 順序付き一覧取得を高速化 |
 | cards | idx_cards_list_id | board_list_id | 通常 | リスト内カード取得を高速化 |
 | cards | idx_cards_list_pos | (board_list_id, position) | 複合 | 順序付きカード取得を高速化 |
+| cards | idx_cards_due_date | due_date | 通常 | 期限順ソート・期限切れ検索を高速化 |
+| card_labels | idx_card_labels_card_id | card_id | 通常 | カードのラベル一覧取得を高速化 |
 
 ---
 
@@ -182,6 +206,7 @@ erDiagram
 | boards | user_id | users | id | CASCADE |
 | board_lists | board_id | boards | id | CASCADE |
 | cards | board_list_id | board_lists | id | CASCADE |
+| card_labels | card_id | cards | id | CASCADE |
 
 **カスケード削除の意味**: 例えば `users` の1行を削除すると、その人の `boards` → 配下の `board_lists` → 配下の `cards` まで全て自動削除される。「孤児データ」が残るのを防ぐ。
 
@@ -200,7 +225,6 @@ erDiagram
 
 | 機能 | 追加テーブル案 |
 | --- | --- |
-| カード詳細（期限・ラベル） | `cards` に `due_date` カラム追加、`labels` と `card_labels`（多対多）を追加 |
 | コメント | `card_comments`（card_id, user_id, body, created_at） |
 | ボード共有 | `board_members`（board_id, user_id, role） ※ boards.user_id は所有者として残す |
 

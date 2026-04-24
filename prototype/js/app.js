@@ -42,6 +42,14 @@ const Storage = {
   },
 };
 
+const PRIORITY_OPTIONS = [
+  { key: 'high',   label: '高', color: '#eb5a46' },
+  { key: 'medium', label: '中', color: '#ff9f1a' },
+  { key: 'low',    label: '低', color: '#0079bf' },
+];
+
+const PRIORITY_RANK = { high: 3, medium: 2, low: 1 };
+
 function migrateBoard(board) {
   if (!board.color) board.color = '#0079bf';
   board.lists = (board.lists || []).map((list) => ({
@@ -50,6 +58,7 @@ function migrateBoard(board) {
       description: '',
       labels: [],
       dueDate: null,
+      priority: null,
       ...card,
     })),
   }));
