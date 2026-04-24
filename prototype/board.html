@@ -6,19 +6,53 @@
   <title>ボード詳細 | Task Management</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
-<body>
+<body class="board-page">
   <header class="header">
     <div class="right">
-      <a href="boards.html" class="back-link">← 戻る</a>
+      <a href="boards.html" class="back-link">← ボード一覧</a>
+      <h1 id="boardTitle" style="margin-left: 0.75rem;"></h1>
     </div>
-    <h1 id="boardTitle"></h1>
     <div class="right">
-      <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
+      <span class="user-label" id="userLabel"></span>
+      <button class="btn btn-sm" onclick="logout()">ログアウト</button>
     </div>
   </header>
 
   <div class="board-detail">
     <div class="lists-container" id="listsContainer"></div>
+  </div>
+
+  <!-- Card Detail Modal -->
+  <div class="modal-overlay hidden" id="cardModal">
+    <div class="modal">
+      <div class="modal-header">
+        <input type="text" class="modal-title" id="cardTitleInput" />
+        <button class="modal-close" id="closeCardModal">✕</button>
+      </div>
+
+      <div class="modal-section">
+        <h3>ラベル</h3>
+        <div class="label-picker" id="labelPicker"></div>
+      </div>
+
+      <div class="modal-section">
+        <h3>期限</h3>
+        <input type="date" id="cardDueInput" />
+      </div>
+
+      <div class="modal-section">
+        <h3>説明</h3>
+        <textarea id="cardDescInput" placeholder="このカードの詳細を書く..."></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-danger btn-sm" id="deleteCardBtn">カードを削除</button>
+        <div class="actions">
+          <button class="btn btn-secondary" id="cancelCardBtn">キャンセル</button>
+          <button class="btn btn-primary" id="saveCardBtn" style="width: auto;">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="js/app.js"></script>

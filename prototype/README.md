@@ -5,11 +5,37 @@
 
 ## 動作確認方法
 
-ブラウザで [`index.html`](index.html) を直接開くだけ。サーバー不要。
+サーバー不要。以下のいずれかで開く：
+
+### 1. ターミナルから（macOS）
+
+プロジェクトルートで：
 
 ```bash
-open prototype/index.html   # macOS
+open prototype/index.html
 ```
+
+または絶対パスで：
+
+```bash
+open /Users/konishikeisuke/RaiseTech-AI/TaskManagement/prototype/index.html
+```
+
+### 2. Finderからダブルクリック
+
+`prototype/index.html` をFinderで直接ダブルクリック。
+
+### 3. ブラウザのアドレスバーに `file://` URLを貼り付け
+
+```text
+file:///Users/konishikeisuke/RaiseTech-AI/TaskManagement/prototype/index.html
+```
+
+※ アドレスバーに相対パス（`prototype/index.html`）を貼っても検索になるだけなので注意。
+
+### 4. VS Code の Live Server 拡張（推奨）
+
+拡張機能「Live Server」を入れて、`index.html` を開いた状態で右下の **Go Live** ボタンを押す。`http://localhost:5500` で開き、編集すると自動リロードされる。
 
 ## 画面構成
 

@@ -1,6 +1,11 @@
 requireLogin();
 
+const user = Storage.getUser();
+document.getElementById('userLabel').textContent = user.displayName;
+
 const boardId = Number(new URLSearchParams(window.location.search).get('id'));
+
+let openCardCtx = null;
 
 function loadBoard() {
   const boards = Storage.getBoards();
@@ -25,6 +30,7 @@ function render() {
   }
   document.getElementById('boardTitle').textContent = board.name;
   document.title = `${board.name} | Task Management`;
+  document.body.style.setProperty('--board-bg', board.color);
 
   const container = document.getElementById('listsContainer');
   container.innerHTML = '';
@@ -33,7 +39,7 @@ function render() {
     container.appendChild(renderList(list));
   });
 
-  const addList = document.createElement('div');
+  const addList = document.createElement('button');
   addList.className = 'add-list';
   addList.textContent = '+ リストを追加';
   addList.addEventListener('click', () => addNewList());
@@ -49,7 +55,7 @@ function renderList(list) {
   header.className = 'list-header';
 
   const title = document.createElement('h2');
-  title.textContent = list.name;
+  title.innerHTML = `${escapeHtml(list.name)}<span class="list-count">${list.cards.length}</span>`;
   title.addEventListener('click', () => editListName(list.id, title));
   header.appendChild(title);
 
@@ -88,17 +94,32 @@ function renderCard(card, listId) {
   el.draggable = true;
   el.dataset.cardId = card.id;
   el.dataset.listId = listId;
-  el.textContent = card.title;
 
-  const del = document.createElement('button');
-  del.className = 'card-delete';
-  del.textContent = '✕';
-  del.title = 'カードを削除';
-  del.addEventListener('click', (e) => {
-    e.stopPropagation();
-    deleteCard(listId, card.id);
+  const parts = [];
+  if (card.labels && card.labels.length > 0) {
+    const labelsHtml = card.labels
+      .map((key) => {
+        const lc = LABEL_COLORS.find((l) => l.key === key);
+        return lc ? `<div class="card-label" style="background:${lc.value}"></div>` : '';
+      })
+      .join('');
+    parts.push(`<div class="card-labels">${labelsHtml}</div>`);
+  }
+
+  parts.push(`<div class="card-title">${escapeHtml(card.title)}</div>`);
+
+  if (card.dueDate) {
+    const status = dueDateStatus(card.dueDate);
+    const cls = status ? ` ${status}` : '';
+    parts.push(`<div class="card-meta"><span class="card-due${cls}">📅 ${formatDueDate(card.dueDate)}</span></div>`);
+  }
+
+  el.innerHTML = parts.join('');
+
+  el.addEventListener('click', (e) => {
+    if (e.target.classList.contains('card-delete')) return;
+    openCardModal(listId, card.id);
   });
-  el.appendChild(del);
 
   el.addEventListener('dragstart', onDragStart);
   el.addEventListener('dragend', onDragEnd);
@@ -158,19 +179,101 @@ function addNewCard(listId) {
   const board = loadBoard();
   const list = board.lists.find((l) => l.id === listId);
   if (!list) return;
-  list.cards.push({ id: genId(), title: title.trim() });
+  list.cards.push({
+    id: genId(),
+    title: title.trim(),
+    description: '',
+    labels: [],
+    dueDate: null,
+  });
   saveBoard(board);
   render();
 }
 
-function deleteCard(listId, cardId) {
+// ==== Card detail modal ====
+function openCardModal(listId, cardId) {
   const board = loadBoard();
   const list = board.lists.find((l) => l.id === listId);
-  if (!list) return;
-  list.cards = list.cards.filter((c) => c.id !== cardId);
+  const card = list ? list.cards.find((c) => c.id === cardId) : null;
+  if (!card) return;
+
+  openCardCtx = { listId, cardId, selectedLabels: [...(card.labels || [])] };
+
+  document.getElementById('cardTitleInput').value = card.title;
+  document.getElementById('cardDescInput').value = card.description || '';
+  document.getElementById('cardDueInput').value = card.dueDate || '';
+
+  const picker = document.getElementById('labelPicker');
+  picker.innerHTML = '';
+  LABEL_COLORS.forEach((lc) => {
+    const chip = document.createElement('div');
+    chip.className = 'label-chip' + (openCardCtx.selectedLabels.includes(lc.key) ? ' selected' : '');
+    chip.style.background = lc.value;
+    chip.textContent = lc.label;
+    chip.dataset.key = lc.key;
+    chip.addEventListener('click', () => {
+      const idx = openCardCtx.selectedLabels.indexOf(lc.key);
+      if (idx >= 0) {
+        openCardCtx.selectedLabels.splice(idx, 1);
+        chip.classList.remove('selected');
+      } else {
+        openCardCtx.selectedLabels.push(lc.key);
+        chip.classList.add('selected');
+      }
+    });
+    picker.appendChild(chip);
+  });
+
+  document.getElementById('cardModal').classList.remove('hidden');
+  document.getElementById('cardTitleInput').focus();
+}
+
+function closeCardModal() {
+  document.getElementById('cardModal').classList.add('hidden');
+  openCardCtx = null;
+}
+
+function saveCardModal() {
+  if (!openCardCtx) return;
+  const board = loadBoard();
+  const list = board.lists.find((l) => l.id === openCardCtx.listId);
+  const card = list ? list.cards.find((c) => c.id === openCardCtx.cardId) : null;
+  if (!card) return;
+
+  const newTitle = document.getElementById('cardTitleInput').value.trim();
+  if (!newTitle) {
+    alert('タイトルは必須です');
+    return;
+  }
+  card.title = newTitle;
+  card.description = document.getElementById('cardDescInput').value;
+  card.dueDate = document.getElementById('cardDueInput').value || null;
+  card.labels = [...openCardCtx.selectedLabels];
+
   saveBoard(board);
+  closeCardModal();
   render();
 }
+
+function deleteCardFromModal() {
+  if (!openCardCtx) return;
+  if (!confirm('このカードを削除しますか？')) return;
+  const board = loadBoard();
+  const list = board.lists.find((l) => l.id === openCardCtx.listId);
+  if (!list) return;
+  list.cards = list.cards.filter((c) => c.id !== openCardCtx.cardId);
+  saveBoard(board);
+  closeCardModal();
+  render();
+}
+
+document.getElementById('closeCardModal').addEventListener('click', closeCardModal);
+document.getElementById('cancelCardBtn').addEventListener('click', closeCardModal);
+document.getElementById('saveCardBtn').addEventListener('click', saveCardModal);
+document.getElementById('deleteCardBtn').addEventListener('click', deleteCardFromModal);
+document.getElementById('cardModal').addEventListener('click', (e) => {
+  if (e.target.id === 'cardModal') closeCardModal();
+});
 
 // ==== Drag and Drop ====
 let dragData = null;

@@ -11,6 +11,7 @@ function render() {
   boards.forEach((board) => {
     const tile = document.createElement('div');
     tile.className = 'board-tile';
+    tile.style.setProperty('--tile-bg', board.color);
     tile.innerHTML = `
       <h3>${escapeHtml(board.name)}</h3>
       <div class="actions">
@@ -37,25 +38,73 @@ function render() {
   const newTile = document.createElement('div');
   newTile.className = 'board-tile new';
   newTile.textContent = '+ 新しいボードを作成';
-  newTile.addEventListener('click', createBoard);
+  newTile.addEventListener('click', openCreateModal);
   grid.appendChild(newTile);
 }
 
-function createBoard() {
-  const name = prompt('ボード名を入力してください:');
-  if (!name || !name.trim()) return;
-  const boards = Storage.getBoards();
-  boards.push({
-    id: genId(),
-    name: name.trim(),
-    lists: [
-      { id: genId(), name: 'ToDo', cards: [] },
-      { id: genId(), name: 'Doing', cards: [] },
-      { id: genId(), name: 'Done', cards: [] },
-    ],
+function openCreateModal() {
+  const overlay = document.getElementById('createModal');
+  const nameInput = document.getElementById('newBoardName');
+  const picker = document.getElementById('colorPicker');
+  nameInput.value = '';
+
+  picker.innerHTML = '';
+  let selectedColor = BOARD_COLORS[0].value;
+  BOARD_COLORS.forEach((c, idx) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (idx === 0 ? ' selected' : '');
+    sw.style.background = c.value;
+    sw.dataset.value = c.value;
+    sw.addEventListener('click', () => {
+      selectedColor = c.value;
+      picker.querySelectorAll('.color-swatch').forEach((el) => el.classList.remove('selected'));
+      sw.classList.add('selected');
+    });
+    picker.appendChild(sw);
   });
-  Storage.setBoards(boards);
-  render();
+
+  overlay.classList.remove('hidden');
+  nameInput.focus();
+
+  const submit = () => {
+    const name = nameInput.value.trim();
+    if (!name) {
+      nameInput.focus();
+      return;
+    }
+    const boards = Storage.getBoards();
+    boards.push({
+      id: genId(),
+      name,
+      color: selectedColor,
+      lists: [
+        { id: genId(), name: 'ToDo', cards: [] },
+        { id: genId(), name: 'Doing', cards: [] },
+        { id: genId(), name: 'Done', cards: [] },
+      ],
+    });
+    Storage.setBoards(boards);
+    close();
+    render();
+  };
+
+  const close = () => {
+    overlay.classList.add('hidden');
+    submitBtn.removeEventListener('click', submit);
+    cancelBtn.removeEventListener('click', close);
+    nameInput.removeEventListener('keydown', onKey);
+  };
+
+  const onKey = (e) => {
+    if (e.key === 'Enter') submit();
+    if (e.key === 'Escape') close();
+  };
+
+  const submitBtn = document.getElementById('createBoardBtn');
+  const cancelBtn = document.getElementById('cancelCreateBtn');
+  submitBtn.addEventListener('click', submit);
+  cancelBtn.addEventListener('click', close);
+  nameInput.addEventListener('keydown', onKey);
 }
 
 function renameBoard(id) {
