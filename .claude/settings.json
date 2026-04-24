@@ -60,11 +60,12 @@
       "Bash(mkdir -p *)"
     ],
     "deny": [
-      "Bash(rm *)",
-      "Bash(rm -rf *)",
-      "Bash(rm -r *)",
-      "Bash(rm -f *)",
-      "Bash(mv *)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf ~/*)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(rm -rf ..*)",
       "Bash(git reset --hard*)",
       "Bash(git push --force*)",
       "Bash(git push -f*)",
