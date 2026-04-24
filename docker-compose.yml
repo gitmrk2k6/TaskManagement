@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:17
+    container_name: taskmanagement-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: taskmanagement
+      POSTGRES_PASSWORD: taskmanagement
+      POSTGRES_DB: taskmanagement
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskmanagement -d taskmanagement"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:

@@ -13,7 +13,7 @@
 | ビルドツール | Gradle | - | Gradle Wrapper を同梱 |
 | フロントエンド | React | 18 | SPA 構成（Next.js は対象外） |
 | フロントエンドビルド | Vite | - | 開発サーバ・バンドラ |
-| DB | PostgreSQL | 15 | Docker で起動 |
+| DB | PostgreSQL | 17 | Docker で起動 |
 | ORM | Spring Data JPA (Hibernate) | - | エンティティマッピング |
 | DBマイグレーション | Flyway | - | スキーマバージョン管理 |
 | 認証 | Spring Security + JWT | - | REST API 向けトークン認証 |
@@ -26,7 +26,7 @@
 | IDE | VS Code / IntelliJ IDEA | - |
 | JDK | Java 21 (Oracle) | ローカル環境で確認済み |
 | Node.js | v22 | npm v10 |
-| DB（ローカル） | Docker + PostgreSQL 15 | docker-compose で管理 |
+| DB（ローカル） | Docker + PostgreSQL 17 | docker-compose で管理 |
 | バージョン管理 | Git / GitHub | - |
 | テスト | JUnit 5 | バックエンド単体テスト |
 
