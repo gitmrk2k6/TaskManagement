@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>新規登録 | Task Management</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h1>新規ユーザー登録</h1>
+      <form id="registerForm" novalidate>
+        <div class="form-group">
+          <label for="displayName">表示名</label>
+          <input type="text" id="displayName" required />
+        </div>
+        <div class="form-group">
+          <label for="email">メールアドレス</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">パスワード（8文字以上）</label>
+          <input type="password" id="password" required minlength="8" />
+        </div>
+        <div class="error" id="errorMsg"></div>
+        <button type="submit" class="btn btn-primary">登録</button>
+      </form>
+      <p class="auth-link">
+        <a href="index.html">ログイン画面へ戻る</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const displayName = document.getElementById('displayName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (!displayName || !email || !password) {
+        errorMsg.textContent = 'すべての項目を入力してください';
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errorMsg.textContent = 'メールアドレスの形式が正しくありません';
+        return;
+      }
+      if (password.length < 8) {
+        errorMsg.textContent = 'パスワードは8文字以上で入力してください';
+        return;
+      }
+
+      alert('登録が完了しました。ログイン画面に戻ります。');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

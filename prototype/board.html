@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ボード詳細 | Task Management</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="right">
+      <a href="boards.html" class="back-link">← 戻る</a>
+    </div>
+    <h1 id="boardTitle"></h1>
+    <div class="right">
+      <button class="btn btn-secondary" onclick="logout()">ログアウト</button>
+    </div>
+  </header>
+
+  <div class="board-detail">
+    <div class="lists-container" id="listsContainer"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/board.js"></script>
+</body>
+</html>
