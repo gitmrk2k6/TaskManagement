@@ -1,0 +1,14 @@
+export type Priority = 'high' | 'medium' | 'low';
+export type Status = 'todo' | 'doing' | 'done';
+
+export interface Task {
+  id: number;
+  title: string;
+  description: string | null;
+  priority: Priority | null;
+  status: Status | null;
+  position: number | null;
+  dueDate: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
