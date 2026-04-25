@@ -13,7 +13,7 @@ RaiseTech AI エンジニアコース 第3回講義で開発中の Trello 風タ
 | ------- | ---- | ---------- |
 | バックエンド | Java / Spring Boot | Java 21 / Spring Boot 4.x |
 | ビルドツール | Gradle | Gradle Wrapper 同梱 |
-| フロントエンド | React + TypeScript | React 18 / Vite |
+| フロントエンド | React + TypeScript | React 19 / Vite |
 | DB | PostgreSQL | 17（Docker） |
 | ORM | Spring Data JPA（Hibernate） | - |
 
