@@ -6,18 +6,18 @@
 
 ## 1. 全体構成
 
-| レイヤ | 採用技術 | バージョン | 備考 |
-| --- | --- | --- | --- |
-| 言語（バックエンド） | Java | 21 (LTS) | ローカル環境で確認済み |
-| フレームワーク | Spring Boot | 4.x | バックエンド API サーバ |
-| ビルドツール | Gradle | - | Gradle Wrapper を同梱 |
-| フロントエンド | React | 18 | SPA 構成（Next.js は対象外） |
-| フロントエンドビルド | Vite | - | 開発サーバ・バンドラ |
-| DB | PostgreSQL | 17 | Docker で起動 |
-| ORM | Spring Data JPA (Hibernate) | - | エンティティマッピング |
-| DBマイグレーション | Flyway | - | スキーマバージョン管理 |
-| 認証 | Spring Security + JWT | - | REST API 向けトークン認証 |
-| API 形式 | REST API (JSON) | - | フロントとバックを分離 |
+| レイヤ | 採用技術 | バージョン | 実装状況 | 備考 |
+| --- | --- | --- | --- | --- |
+| 言語（バックエンド） | Java | 21 (LTS) | ✅ 実装済み | ローカル環境で確認済み |
+| フレームワーク | Spring Boot | 4.x | ✅ 実装済み | バックエンド API サーバ |
+| ビルドツール | Gradle | - | ✅ 実装済み | Gradle Wrapper を同梱 |
+| フロントエンド | React + TypeScript | 18 | ✅ 実装済み | SPA 構成（Next.js は対象外） |
+| フロントエンドビルド | Vite | - | ✅ 実装済み | 開発サーバ・バンドラ |
+| DB | PostgreSQL | 17 | ✅ 実装済み | Docker で起動 |
+| ORM | Spring Data JPA (Hibernate) | - | ✅ 実装済み | エンティティマッピング |
+| DBマイグレーション | Flyway | - | 🔲 未実装 | スキーマバージョン管理（今後導入予定） |
+| 認証 | Spring Security + JWT | - | 🔲 未実装 | REST API 向けトークン認証（今後導入予定） |
+| API 形式 | REST API (JSON) | - | ✅ 実装済み | フロントとバックを分離 |
 
 ## 2. 開発環境
 
