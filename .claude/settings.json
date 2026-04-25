@@ -57,7 +57,15 @@
       "Bash(docker ps*)",
       "Bash(docker logs*)",
       "Bash(docker images*)",
-      "Bash(mkdir -p *)"
+      "Bash(mkdir -p *)",
+      "Bash(kill $(lsof -ti:8080))",
+      "Bash(kill $(lsof -ti:5173))",
+      "Bash(lsof -ti:8080)",
+      "Bash(lsof -ti:5173)",
+      "Bash(lsof -i:8080*)",
+      "Bash(lsof -i:5173*)",
+      "Bash(docker compose up*)",
+      "Bash(docker compose down*)"
     ],
     "deny": [
       "Bash(rm -rf /)",
