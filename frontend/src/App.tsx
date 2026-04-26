@@ -3,6 +3,7 @@ import { fetchTasks } from './api';
 import type { Task } from './types';
 import { BoardColumn } from './components/BoardColumn';
 import { FilterBar } from './components/FilterBar';
+import { TaskCreateModal } from './components/TaskCreateModal';
 import './style.css';
 
 const COLUMNS: { status: string; label: string }[] = [
@@ -16,24 +17,35 @@ export default function App() {
   const [filterPriority, setFilterPriority] = useState('');
   const [tasks, setTasks]                   = useState<Task[]>([]);
   const [error, setError]                   = useState<string | null>(null);
+  const [createOpen, setCreateOpen]         = useState(false);
+  const [refreshKey, setRefreshKey]         = useState(0);
 
   useEffect(() => {
     setError(null);
     fetchTasks({ status: filterStatus, priority: filterPriority })
       .then(setTasks)
       .catch((e: Error) => setError(e.message));
-  }, [filterStatus, filterPriority]);
+  }, [filterStatus, filterPriority, refreshKey]);
 
   return (
     <div className="board-page">
       <header className="header header-solid">
         <h1>タスクボード</h1>
-        <FilterBar
-          status={filterStatus}
-          priority={filterPriority}
-          onStatusChange={setFilterStatus}
-          onPriorityChange={setFilterPriority}
-        />
+        <div className="header-actions">
+          <FilterBar
+            status={filterStatus}
+            priority={filterPriority}
+            onStatusChange={setFilterStatus}
+            onPriorityChange={setFilterPriority}
+          />
+          <button
+            type="button"
+            className="btn btn-primary new-task-btn"
+            onClick={() => setCreateOpen(true)}
+          >
+            ＋ 新規タスク
+          </button>
+        </div>
       </header>
 
       {error && <p style={{ color: '#eb5a46', padding: '1rem' }}>エラー: {error}</p>}
@@ -49,6 +61,12 @@ export default function App() {
           ))}
         </div>
       </div>
+
+      <TaskCreateModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }
