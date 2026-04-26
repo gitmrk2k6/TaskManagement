@@ -1,11 +1,15 @@
 package com.raisetech.taskmanagement.service;
 
 import com.raisetech.taskmanagement.dto.CreateTaskRequest;
+import com.raisetech.taskmanagement.dto.UpdateTaskRequest;
 import com.raisetech.taskmanagement.entity.Task;
+import com.raisetech.taskmanagement.exception.NotFoundException;
 import com.raisetech.taskmanagement.repository.TaskRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,6 +53,38 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    @Transactional
+    public Task updateTask(Long id, UpdateTaskRequest req) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Task not found: " + id));
+
+        String oldStatus = task.getStatus();
+        boolean orderChanged = false;
+
+        if (req.getTitle() != null) task.setTitle(req.getTitle());
+        if (req.getDescription() != null) task.setDescription(req.getDescription());
+        if (req.getPriority() != null) task.setPriority(req.getPriority());
+        if (req.getStatus() != null) {
+            if (!req.getStatus().equals(oldStatus)) orderChanged = true;
+            task.setStatus(req.getStatus());
+        }
+        if (req.getDueDate() != null) task.setDueDate(req.getDueDate());
+        if (req.getPosition() != null) {
+            task.setPosition(req.getPosition());
+            orderChanged = true;
+        }
+        task.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(task);
+
+        if (orderChanged) {
+            normalizeColumn(oldStatus);
+            if (!Objects.equals(oldStatus, task.getStatus())) {
+                normalizeColumn(task.getStatus());
+            }
+        }
+        return taskRepository.findById(id).orElseThrow();
+    }
+
     private Integer nextPositionFor(String status) {
         return taskRepository.findByStatus(status).stream()
                 .map(Task::getPosition)
@@ -56,5 +92,19 @@ public class TaskService {
                 .max(Integer::compareTo)
                 .map(p -> p + 1)
                 .orElse(0);
+    }
+
+    private void normalizeColumn(String status) {
+        if (status == null) return;
+        List<Task> col = taskRepository.findByStatus(status);
+        col.sort(Comparator
+                .comparing((Task t) -> t.getPosition() == null ? Integer.MAX_VALUE : t.getPosition())
+                .thenComparing(Task::getId));
+        for (int i = 0; i < col.size(); i++) {
+            if (!Integer.valueOf(i).equals(col.get(i).getPosition())) {
+                col.get(i).setPosition(i);
+            }
+        }
+        taskRepository.saveAll(col);
     }
 }
