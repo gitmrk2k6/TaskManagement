@@ -134,11 +134,25 @@ body {
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.25);
   font-size: 0.9rem;
   word-break: break-word;
+  cursor: grab;
+  user-select: none;
+}
+
+.card:active {
+  cursor: grabbing;
+}
+
+.card.dragging {
+  opacity: 0.4;
 }
 
 .card:hover {
   background: #fafbfc;
   box-shadow: 0 1px 0 rgba(9, 30, 66, 0.35);
+}
+
+.list.drag-hover {
+  background: #d4dae3;
 }
 
 /* ==== Card priority badge ==== */
