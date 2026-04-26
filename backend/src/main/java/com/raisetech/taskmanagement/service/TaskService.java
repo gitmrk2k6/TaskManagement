@@ -23,6 +23,7 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
+    @Transactional(readOnly = true)
     public List<Task> findTasks(String status, String priority) {
         if (status != null && priority != null) {
             return taskRepository.findByStatusAndPriority(status, priority);
@@ -35,10 +36,12 @@ public class TaskService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Task> findById(Long id) {
         return taskRepository.findById(id);
     }
 
+    @Transactional
     public Task createTask(CreateTaskRequest req) {
         Task task = new Task();
         task.setTitle(req.getTitle());
@@ -61,14 +64,14 @@ public class TaskService {
         String oldStatus = task.getStatus();
         boolean orderChanged = false;
 
-        if (req.getTitle() != null) task.setTitle(req.getTitle());
-        if (req.getDescription() != null) task.setDescription(req.getDescription());
-        if (req.getPriority() != null) task.setPriority(req.getPriority());
+        if (req.getTitle() != null) { task.setTitle(req.getTitle()); }
+        if (req.getDescription() != null) { task.setDescription(req.getDescription()); }
+        if (req.getPriority() != null) { task.setPriority(req.getPriority()); }
         if (req.getStatus() != null) {
-            if (!req.getStatus().equals(oldStatus)) orderChanged = true;
+            if (!req.getStatus().equals(oldStatus)) { orderChanged = true; }
             task.setStatus(req.getStatus());
         }
-        if (req.getDueDate() != null) task.setDueDate(req.getDueDate());
+        if (req.getDueDate() != null) { task.setDueDate(req.getDueDate()); }
         if (req.getPosition() != null) {
             orderChanged = true;
         }
