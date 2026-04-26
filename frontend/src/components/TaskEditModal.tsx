@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { deleteTask, updateTask } from '../api';
 import type { Priority, Status, Task, UpdateTaskInput } from '../types';
 
@@ -28,18 +28,9 @@ function toFormState(task: Task): FormState {
 }
 
 export function TaskEditModal({ task, onClose, onSaved, onDeleted }: Props) {
-  const [form, setForm] = useState<FormState | null>(null);
+  const [form, setForm] = useState<FormState | null>(() => task ? toFormState(task) : null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (task) {
-      setForm(toFormState(task));
-      setError(null);
-    } else {
-      setForm(null);
-    }
-  }, [task]);
 
   if (!task || !form) return null;
 
