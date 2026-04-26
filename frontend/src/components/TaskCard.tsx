@@ -25,14 +25,29 @@ function formatDueDate(dateStr: string): string {
 
 interface Props {
   task: Task;
+  isDragging?: boolean;
+  onEdit?: (task: Task) => void;
+  onDragStart?: (task: Task) => void;
+  onDragEnd?: () => void;
 }
 
-export function TaskCard({ task }: Props) {
+export function TaskCard({ task, isDragging, onEdit, onDragStart, onDragEnd }: Props) {
   const priority = task.priority ? PRIORITY_MAP[task.priority] : null;
   const dueStatus = task.dueDate ? dueDateStatus(task.dueDate) : null;
 
   return (
-    <div className="card">
+    <div
+      className={['card', isDragging ? 'dragging' : ''].filter(Boolean).join(' ')}
+      draggable
+      data-task-id={task.id}
+      onDragStart={(e) => {
+        e.dataTransfer.setData('text/plain', String(task.id));
+        e.dataTransfer.effectAllowed = 'move';
+        onDragStart?.(task);
+      }}
+      onDragEnd={() => onDragEnd?.()}
+      onClick={() => onEdit?.(task)}
+    >
       {priority && (
         <span className="card-priority" style={{ background: priority.color }}>
           {priority.label}

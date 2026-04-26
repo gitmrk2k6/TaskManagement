@@ -1,11 +1,15 @@
 package com.raisetech.taskmanagement.service;
 
 import com.raisetech.taskmanagement.dto.CreateTaskRequest;
+import com.raisetech.taskmanagement.dto.UpdateTaskRequest;
 import com.raisetech.taskmanagement.entity.Task;
+import com.raisetech.taskmanagement.exception.NotFoundException;
 import com.raisetech.taskmanagement.repository.TaskRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,6 +53,34 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
+    @Transactional
+    public Task updateTask(Long id, UpdateTaskRequest req) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Task not found: " + id));
+
+        String oldStatus = task.getStatus();
+        boolean orderChanged = false;
+
+        if (req.getTitle() != null) task.setTitle(req.getTitle());
+        if (req.getDescription() != null) task.setDescription(req.getDescription());
+        if (req.getPriority() != null) task.setPriority(req.getPriority());
+        if (req.getStatus() != null) {
+            if (!req.getStatus().equals(oldStatus)) orderChanged = true;
+            task.setStatus(req.getStatus());
+        }
+        if (req.getDueDate() != null) task.setDueDate(req.getDueDate());
+        if (req.getPosition() != null) {
+            orderChanged = true;
+        }
+        task.setUpdatedAt(LocalDateTime.now());
+        taskRepository.save(task);
+
+        if (orderChanged) {
+            reorderWithMove(task, oldStatus, req.getPosition());
+        }
+        return taskRepository.findById(id).orElseThrow();
+    }
+
     private Integer nextPositionFor(String status) {
         return taskRepository.findByStatus(status).stream()
                 .map(Task::getPosition)
@@ -56,5 +88,37 @@ public class TaskService {
                 .max(Integer::compareTo)
                 .map(p -> p + 1)
                 .orElse(0);
+    }
+
+    private List<Task> getSortedColumn(String status) {
+        List<Task> col = taskRepository.findByStatus(status);
+        col.sort(Comparator.comparingInt(t -> t.getPosition() == null ? Integer.MAX_VALUE : t.getPosition()));
+        return col;
+    }
+
+    private void reorderWithMove(Task movedTask, String oldStatus, Integer targetIndex) {
+        String newStatus = movedTask.getStatus();
+        boolean crossColumn = !oldStatus.equals(newStatus);
+
+        List<Task> sourceCol = getSortedColumn(oldStatus);
+        sourceCol.removeIf(t -> t.getId().equals(movedTask.getId()));
+
+        List<Task> targetCol = crossColumn ? getSortedColumn(newStatus) : sourceCol;
+
+        int insertAt = (targetIndex == null) ? targetCol.size()
+                : Math.min(targetIndex, targetCol.size());
+        targetCol.add(insertAt, movedTask);
+
+        for (int i = 0; i < targetCol.size(); i++) {
+            targetCol.get(i).setPosition(i);
+        }
+        taskRepository.saveAll(targetCol);
+
+        if (crossColumn) {
+            for (int i = 0; i < sourceCol.size(); i++) {
+                sourceCol.get(i).setPosition(i);
+            }
+            taskRepository.saveAll(sourceCol);
+        }
     }
 }

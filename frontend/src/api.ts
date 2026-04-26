@@ -1,4 +1,18 @@
-import type { CreateTaskInput, Task } from './types';
+import type { CreateTaskInput, Task, UpdateTaskInput } from './types';
+
+async function parseApiError(res: Response, fallback: string): Promise<Error> {
+  const detail = await res.json().catch(() => null);
+  if (detail?.errors) {
+    const messages = Object.entries(detail.errors as Record<string, string>)
+      .map(([field, msg]) => `${field}: ${msg}`)
+      .join(', ');
+    return new Error(messages || fallback);
+  }
+  if (detail?.message) {
+    return new Error(detail.message);
+  }
+  return new Error(fallback);
+}
 
 export async function fetchTasks(params: { status?: string; priority?: string } = {}): Promise<Task[]> {
   const query = new URLSearchParams();
@@ -15,15 +29,16 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) {
-    const detail = await res.json().catch(() => null);
-    if (detail?.errors) {
-      const messages = Object.entries(detail.errors as Record<string, string>)
-        .map(([field, msg]) => `${field}: ${msg}`)
-        .join(', ');
-      throw new Error(messages || `Create failed: ${res.status}`);
-    }
-    throw new Error(`Create failed: ${res.status}`);
-  }
+  if (!res.ok) throw await parseApiError(res, `Create failed: ${res.status}`);
+  return res.json();
+}
+
+export async function updateTask(id: number, input: UpdateTaskInput): Promise<Task> {
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await parseApiError(res, `Update failed: ${res.status}`);
   return res.json();
 }
