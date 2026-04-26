@@ -70,17 +70,13 @@ public class TaskService {
         }
         if (req.getDueDate() != null) task.setDueDate(req.getDueDate());
         if (req.getPosition() != null) {
-            task.setPosition(req.getPosition());
             orderChanged = true;
         }
         task.setUpdatedAt(LocalDateTime.now());
         taskRepository.save(task);
 
         if (orderChanged) {
-            normalizeColumn(oldStatus);
-            if (!Objects.equals(oldStatus, task.getStatus())) {
-                normalizeColumn(task.getStatus());
-            }
+            reorderWithMove(task, oldStatus, req.getPosition());
         }
         return taskRepository.findById(id).orElseThrow();
     }
@@ -94,17 +90,35 @@ public class TaskService {
                 .orElse(0);
     }
 
-    private void normalizeColumn(String status) {
-        if (status == null) return;
+    private List<Task> getSortedColumn(String status) {
         List<Task> col = taskRepository.findByStatus(status);
-        col.sort(Comparator
-                .comparing((Task t) -> t.getPosition() == null ? Integer.MAX_VALUE : t.getPosition())
-                .thenComparing(Task::getId));
-        for (int i = 0; i < col.size(); i++) {
-            if (!Integer.valueOf(i).equals(col.get(i).getPosition())) {
-                col.get(i).setPosition(i);
-            }
+        col.sort(Comparator.comparingInt(t -> t.getPosition() == null ? Integer.MAX_VALUE : t.getPosition()));
+        return col;
+    }
+
+    private void reorderWithMove(Task movedTask, String oldStatus, Integer targetIndex) {
+        String newStatus = movedTask.getStatus();
+        boolean crossColumn = !oldStatus.equals(newStatus);
+
+        List<Task> sourceCol = getSortedColumn(oldStatus);
+        sourceCol.removeIf(t -> t.getId().equals(movedTask.getId()));
+
+        List<Task> targetCol = crossColumn ? getSortedColumn(newStatus) : sourceCol;
+
+        int insertAt = (targetIndex == null) ? targetCol.size()
+                : Math.min(targetIndex, targetCol.size());
+        targetCol.add(insertAt, movedTask);
+
+        for (int i = 0; i < targetCol.size(); i++) {
+            targetCol.get(i).setPosition(i);
         }
-        taskRepository.saveAll(col);
+        taskRepository.saveAll(targetCol);
+
+        if (crossColumn) {
+            for (int i = 0; i < sourceCol.size(); i++) {
+                sourceCol.get(i).setPosition(i);
+            }
+            taskRepository.saveAll(sourceCol);
+        }
     }
 }
