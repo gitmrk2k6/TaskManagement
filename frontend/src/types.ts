@@ -12,3 +12,11 @@ export interface Task {
   createdAt: string | null;
   updatedAt: string | null;
 }
+
+export interface CreateTaskInput {
+  title: string;
+  description?: string | null;
+  priority?: Priority | null;
+  status?: Status;
+  dueDate?: string | null;
+}
