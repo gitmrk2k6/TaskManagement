@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { updateTask } from '../api';
+import { deleteTask, updateTask } from '../api';
 import type { Priority, Status, Task, UpdateTaskInput } from '../types';
 
 interface Props {
   task: Task | null;
   onClose: () => void;
   onSaved: (task: Task) => void;
+  onDeleted: () => void;
 }
 
 interface FormState {
@@ -26,7 +27,7 @@ function toFormState(task: Task): FormState {
   };
 }
 
-export function TaskEditModal({ task, onClose, onSaved }: Props) {
+export function TaskEditModal({ task, onClose, onSaved, onDeleted }: Props) {
   const [form, setForm] = useState<FormState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +46,21 @@ export function TaskEditModal({ task, onClose, onSaved }: Props) {
   const handleClose = () => {
     if (submitting) return;
     onClose();
+  };
+
+  const handleDelete = async () => {
+    if (!task) return;
+    if (!window.confirm(`「${task.title}」を削除しますか？`)) return;
+    setSubmitting(true);
+    try {
+      await deleteTask(task.id);
+      onDeleted();
+      onClose();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,6 +157,15 @@ export function TaskEditModal({ task, onClose, onSaved }: Props) {
           {error && <p className="modal-error">{error}</p>}
 
           <div className="modal-actions">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={submitting}
+              className="btn btn-danger"
+            >
+              削除
+            </button>
+            <div style={{ flex: 1 }} />
             <button
               type="button"
               onClick={handleClose}
