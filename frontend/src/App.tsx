@@ -99,6 +99,7 @@ export default function App() {
         task={editingTask}
         onClose={() => setEditingTask(null)}
         onSaved={() => setRefreshKey((k) => k + 1)}
+        onDeleted={() => { setEditingTask(null); setRefreshKey((k) => k + 1); }}
       />
     </div>
   );

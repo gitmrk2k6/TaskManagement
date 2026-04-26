@@ -42,3 +42,8 @@ export async function updateTask(id: number, input: UpdateTaskInput): Promise<Ta
   if (!res.ok) throw await parseApiError(res, `Update failed: ${res.status}`);
   return res.json();
 }
+
+export async function deleteTask(id: number): Promise<void> {
+  const res = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw await parseApiError(res, `Delete failed: ${res.status}`);
+}

@@ -90,6 +90,19 @@ public class TaskService {
                 .orElse(0);
     }
 
+    @Transactional
+    public void deleteTask(Long id) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Task not found: " + id));
+        String status = task.getStatus();
+        taskRepository.deleteById(id);
+        List<Task> col = getSortedColumn(status);
+        for (int i = 0; i < col.size(); i++) {
+            col.get(i).setPosition(i);
+        }
+        taskRepository.saveAll(col);
+    }
+
     private List<Task> getSortedColumn(String status) {
         List<Task> col = taskRepository.findByStatus(status);
         col.sort(Comparator.comparingInt(t -> t.getPosition() == null ? Integer.MAX_VALUE : t.getPosition()));
