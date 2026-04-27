@@ -25,10 +25,7 @@ export default function App() {
 
   useEffect(() => {
     fetchTasks({ status: filterStatus, priority: filterPriority })
-      .then((data) => {
-        setError(null);
-        setTasks(data);
-      })
+      .then((data) => { setError(null); setTasks(data); })
       .catch((e: Error) => setError(e.message));
   }, [filterStatus, filterPriority, refreshKey]);
 
@@ -98,6 +95,7 @@ export default function App() {
       />
 
       <TaskEditModal
+        key={editingTask?.id ?? 'none'}
         task={editingTask}
         onClose={() => setEditingTask(null)}
         onSaved={() => setRefreshKey((k) => k + 1)}

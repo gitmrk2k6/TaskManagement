@@ -28,16 +28,9 @@ function toFormState(task: Task): FormState {
 }
 
 export function TaskEditModal({ task, onClose, onSaved, onDeleted }: Props) {
-  const [prevTask, setPrevTask] = useState<Task | null>(null);
-  const [form, setForm] = useState<FormState | null>(null);
+  const [form, setForm] = useState<FormState | null>(() => task ? toFormState(task) : null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  if (task !== prevTask) {
-    setPrevTask(task);
-    setForm(task ? toFormState(task) : null);
-    if (task) setError(null);
-  }
 
   if (!task || !form) return null;
 

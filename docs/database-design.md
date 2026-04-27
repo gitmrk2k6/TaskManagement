@@ -232,8 +232,40 @@ erDiagram
 
 ---
 
-## 7. 次のステップ
+---
 
-1. 技術スタック確定後、本設計を元に `schema.sql`（DDL）を作成
-2. JPA Entity クラスへのマッピング
-3. Repository / Service 実装
+## 7. 現在の実装スキーマ（フェーズ1: タスク管理）
+
+現時点では以下の 1 テーブルのみが実装されている。
+`users` / `boards` / `board_lists` は今後のフェーズで追加予定。
+
+### tasks テーブル
+
+| カラム | 型 | NULL | 説明 |
+| --- | --- | --- | --- |
+| id | BIGINT | NO（PK） | タスクID（AUTO_INCREMENT） |
+| title | VARCHAR(255) | NO | タスクタイトル |
+| description | TEXT | YES | 説明文 |
+| priority | VARCHAR(10) | YES | 優先度（'high' / 'medium' / 'low'） |
+| status | VARCHAR(10) | YES | 状態（'todo' / 'doing' / 'done'） |
+| due_date | DATE | YES | 期限日 |
+| position | INT | YES | リスト内表示順 |
+| created_at | TIMESTAMP | YES | 作成日時 |
+| updated_at | TIMESTAMP | YES | 更新日時 |
+
+**設計との差異**:
+
+- `board_list_id` FK の代わりに `status` カラムで列を表現（固定3種）
+- `users` / `boards` / `board_lists` テーブルが存在しないため、認証・マルチユーザー未対応
+- スキーマは JPA Entity (`Task.java`) + `ddl-auto: update` で自動生成
+
+---
+
+## 8. 次のステップ
+
+1. ~~技術スタック確定後、本設計を元に `schema.sql`（DDL）を作成~~ → **完了**（JPA Entity として実装済み）
+2. ~~JPA Entity クラスへのマッピング~~ → **完了**（`Task.java`）
+3. ~~Repository / Service 実装~~ → **完了**（タスク CRUD）
+4. `users` / `boards` / `board_lists` テーブルの追加（次フェーズ）
+5. 認証機能（Spring Security + JWT）の実装（次フェーズ）
+6. DB マイグレーション管理（Flyway 導入）（次フェーズ）
