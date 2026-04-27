@@ -6,6 +6,7 @@
 | ---- | ------ | -------- |
 | フロントエンド（React/TypeScript） | ESLint | `cd frontend && npm run lint` |
 | バックエンド（Spring Boot） | Checkstyle | `cd backend && ./gradlew checkstyleMain checkstyleTest` |
+| インフラ（Terraform） | terraform fmt | `cd terraform && terraform fmt -check -recursive` |
 
 ---
 
@@ -37,6 +38,20 @@ cd backend && ./gradlew checkstyleMain checkstyleTest
   3. コードを修正する
   4. 修正後に再度 `./gradlew checkstyleMain` を実行して通過を確認する
 
+### Step 3: インフラ（Terraform） — フォーマットチェック
+
+`terraform/` ディレクトリが存在する場合のみ実行する。
+
+```bash
+cd terraform && terraform fmt -check -recursive
+```
+
+- 差分なしで終了（exit code 0）なら「✅ terraform fmt: 問題なし」と報告する。
+- フォーマットが崩れているファイルがある場合は以下を実施する:
+  1. 対象ファイル名を一覧表示する
+  2. `terraform fmt -recursive` で自動修正する
+  3. 修正後に再度 `-check` を実行して通過を確認する
+
 ---
 
 ## 結果の報告フォーマット
@@ -53,6 +68,11 @@ cd backend && ./gradlew checkstyleMain checkstyleTest
 ### バックエンド（Checkstyle）
 ✅ BUILD SUCCESSFUL      ← 問題なしの場合
 ❌ N violations          ← 問題ありの場合（修正済み or 修正内容を説明）
+
+### インフラ（terraform fmt）
+✅ フォーマット問題なし   ← 問題なしの場合
+❌ N files               ← 問題ありの場合（修正済み or 修正内容を説明）
+⏭️ terraform/ なし       ← ディレクトリが存在しない場合はスキップ
 ```
 
 問題がない場合は「すべてのチェックが通過しています」と伝える。
