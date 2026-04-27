@@ -1,0 +1,15 @@
+[Unit]
+Description=TaskManagement Spring Boot Application
+After=network.target
+
+[Service]
+Type=simple
+User=taskmanagement
+WorkingDirectory=/opt/taskmanagement
+EnvironmentFile=/opt/taskmanagement/app.env
+ExecStart=/usr/bin/java -Xms256m -Xmx512m -jar /opt/taskmanagement/taskmanagement.jar
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

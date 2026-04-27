@@ -1,0 +1,7 @@
+aws_region    = "ap-northeast-1"
+project_name  = "taskmanagement"
+db_name       = "taskmanagement"
+db_username   = "taskmanagement"
+db_password   = "your-secure-password-here"
+key_pair_name = "taskmanagement"
+my_ip_cidr    = "203.0.113.1/32"  # 自分の IP アドレス/32 に変更
